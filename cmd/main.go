@@ -1,20 +1,21 @@
 package main
 
 import (
-	"loja/internal/configuration/database"
 	"loja/internal/configuration/cache_config"
-	"loja/internal/seller/application/usecase"
+	"loja/internal/configuration/database"
 	"loja/internal/seller/adapter/input/controller"
 	"loja/internal/seller/adapter/input/routes"
+	"loja/internal/seller/adapter/output/cache"
 	"loja/internal/seller/adapter/output/repository"
 	"loja/internal/seller/adapter/output/smtp"
-	"loja/internal/seller/adapter/output/cache"
-	"loja/internal/seller/application/dto"
 	"loja/internal/seller/application/decorator"
+	"loja/internal/seller/application/dto"
+	"loja/internal/seller/application/usecase"
 
-	"github.com/gin-gonic/gin"
 	"log"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -36,7 +37,7 @@ func main() {
 	registerSeller := usecase.NewUseCaseRegisterSeller(repository, smtp, cache)
 	createSeller := usecase.NewUseCaseCreateSeller(repository, smtp, cache)
 	loginSeller := usecase.NewUseCaseLoginSeller(repository)
-	getSellerByID := decorator.NewTokenVerifier[dto.GetSellerByIDInput, dto.GetSellerByIDOutput](usecase.NewUseCaseGetSellerByID(repository))
+	getSellerByID := decorator.NewTokenVerifier[dto.GetSellerByIDInput, *dto.GetSellerByIDOutput](usecase.NewUseCaseGetSellerByID(repository))
 	getSellerByUsername := usecase.NewUseCaseGetSellerByUsername(repository)
 	controller := controller.NewSellerController(
 		*createSeller, 

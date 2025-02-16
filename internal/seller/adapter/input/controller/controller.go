@@ -18,7 +18,7 @@ type GetSellerByIDInput = decorator.TokenVerifierInput[dto.GetSellerByIDInput]
 
 type controller struct {
 	createSeller        usecase.CreateSeller
-	getSellerByID       usecase.Usecase[GetSellerByIDInput, dto.GetSellerByIDOutput]
+	getSellerByID       usecase.Usecase[GetSellerByIDInput, *dto.GetSellerByIDOutput]
 	getSellerByUsername usecase.GetSellerByUsername
 	registerSeller      usecase.RegisterSeller
 	loginSeller         usecase.LoginSeller
@@ -34,7 +34,7 @@ type ControllerGroup interface {
 
 func NewSellerController(
 	createSeller usecase.CreateSeller,
-	getSellerByID usecase.Usecase[decorator.TokenVerifierInput[dto.GetSellerByIDInput], dto.GetSellerByIDOutput],
+	getSellerByID usecase.Usecase[decorator.TokenVerifierInput[dto.GetSellerByIDInput], *dto.GetSellerByIDOutput],
 	getSellerByUsername usecase.GetSellerByUsername,
 	registerSeller usecase.RegisterSeller,
 	loginSeller usecase.LoginSeller,
