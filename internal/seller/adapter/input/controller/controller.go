@@ -1,25 +1,27 @@
-package controller 
+package controller
 
 import (
-	"loja/internal/seller/application/dto"
-	"loja/internal/seller/application/usecase"
+	"fmt"
+	"net/http"
+
+	"loja/internal/configuration/handler_err"
 	"loja/internal/seller/adapter/input/model/request"
 	"loja/internal/seller/adapter/input/model/response"
-	"loja/internal/configuration/handler_err"
 	"loja/internal/seller/application/decorator"
-
-	"net/http"
-	"fmt"
+	"loja/internal/seller/application/dto"
+	"loja/internal/seller/application/usecase"
 
 	"github.com/gin-gonic/gin"
 )
 
+type GetSellerByIDInput = decorator.TokenVerifierInput[dto.GetSellerByIDInput]
+
 type controller struct {
-	createSeller usecase.CreateSeller
-	getSellerByID usecase.Usecase[dto.GetSellerByIDInput, dto.GetSellerByIDOutput]
+	createSeller        usecase.CreateSeller
+	getSellerByID       usecase.Usecase[GetSellerByIDInput, dto.GetSellerByIDOutput]
 	getSellerByUsername usecase.GetSellerByUsername
-	registerSeller usecase.RegisterSeller
-	loginSeller usecase.LoginSeller
+	registerSeller      usecase.RegisterSeller
+	loginSeller         usecase.LoginSeller
 }
 
 type ControllerGroup interface {
@@ -32,17 +34,17 @@ type ControllerGroup interface {
 
 func NewSellerController(
 	createSeller usecase.CreateSeller,
-	getSellerByID usecase.Usecase[dto.GetSellerByIDInput, dto.GetSellerByIDOutput],
+	getSellerByID usecase.Usecase[decorator.TokenVerifierInput[dto.GetSellerByIDInput], dto.GetSellerByIDOutput],
 	getSellerByUsername usecase.GetSellerByUsername,
 	registerSeller usecase.RegisterSeller,
 	loginSeller usecase.LoginSeller,
 ) *controller {
 	return &controller{
-		createSeller: createSeller,
-		getSellerByID: getSellerByID,
+		createSeller:        createSeller,
+		getSellerByID:       getSellerByID,
 		getSellerByUsername: getSellerByUsername,
-		registerSeller: registerSeller,
-		loginSeller: loginSeller,
+		registerSeller:      registerSeller,
+		loginSeller:         loginSeller,
 	}
 }
 
@@ -58,7 +60,7 @@ func (ct *controller) CreateSeller(c *gin.Context) {
 
 	sellerInput := dto.CreateSellerInput{
 		Email: sellerCodeRequest.Email,
-		Code: sellerCodeRequest.Code,
+		Code:  sellerCodeRequest.Code,
 	}
 
 	if infoErr := ct.createSeller.Run(sellerInput); infoErr.Err != nil {
@@ -81,9 +83,11 @@ func (ct *controller) GetSellerByID(c *gin.Context) {
 	}
 
 	fmt.Println(c.Request.Header.Get("Authorization"))
-	decorator.SetToken(c.Request.Header.Get("Authorization"))
 
-	seller, infoErr := ct.getSellerByID.Run(sellerInput)
+	seller, infoErr := ct.getSellerByID.Run(GetSellerByIDInput{
+		Token: c.Request.Header.Get("Authorization"),
+		Data:  sellerInput,
+	})
 	if infoErr.Err != nil {
 		msgErr := handler_err.HandlerErr(infoErr)
 		c.JSON(msgErr.Status, msgErr)
@@ -92,10 +96,10 @@ func (ct *controller) GetSellerByID(c *gin.Context) {
 	}
 
 	sellerResponse := response.SellerResponse{
-		ID: seller.ID,
-		Name: seller.Name,
+		ID:       seller.ID,
+		Name:     seller.Name,
 		Username: seller.Username,
-		Email: seller.Email,
+		Email:    seller.Email,
 	}
 
 	c.JSON(http.StatusOK, sellerResponse)
@@ -116,10 +120,10 @@ func (ct *controller) GetSellerByUsername(c *gin.Context) {
 	}
 
 	sellerResponse := response.SellerResponse{
-		ID: seller.ID,
-		Name: seller.Name,
+		ID:       seller.ID,
+		Name:     seller.Name,
 		Username: seller.Username,
-		Email: seller.Email,
+		Email:    seller.Email,
 	}
 
 	c.JSON(http.StatusOK, sellerResponse)
@@ -136,9 +140,9 @@ func (ct *controller) RegisterSeller(c *gin.Context) {
 	}
 
 	sellerInput := dto.RegisterSellerInput{
-		Name: sellerRequest.Name,
+		Name:     sellerRequest.Name,
 		Username: sellerRequest.Username,
-		Email: sellerRequest.Email,
+		Email:    sellerRequest.Email,
 		Password: sellerRequest.Password,
 	}
 
@@ -164,7 +168,7 @@ func (ct *controller) LoginSeller(c *gin.Context) {
 	}
 
 	sellerInput := dto.LoginSellerInput{
-		Email: sellerRequest.Email,
+		Email:    sellerRequest.Email,
 		Password: sellerRequest.Password,
 	}
 
