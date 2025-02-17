@@ -10,7 +10,6 @@ import (
 	"time"
 	"strings"
 	"errors"
-	"fmt"
 )
 
 type TokenInfoDTO struct {
@@ -38,7 +37,7 @@ func (t *TokenGenerator) GenerateToken(user *entities.User) (string, *handler_er
 		"name": user.GetName(),
 		"username": user.GetUsername(),
 		"type": t.value,
-		"exp": time.Now().Add(time.Minute * 5).Unix(),
+		"exp": time.Now().Add(time.Hour * 5).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -70,8 +69,6 @@ func (t *TokenGenerator) VerifyToken(tokenValue string) (TokenInfoDTO, *handler_
 			Err: handler_err.ErrInvalidInput,
 		}
 	}
-
-	fmt.Println(err)
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {

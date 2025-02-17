@@ -1,9 +1,9 @@
-package usecase
+package query
 
 import (
 	"loja/internal/configuration/handler_err"
 )
 
-type Usecase[V any, R any] interface {
+type Query[V any, R any] interface {
 	Run(V) (R, *handler_err.InfoErr)
 }

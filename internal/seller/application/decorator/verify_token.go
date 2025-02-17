@@ -3,7 +3,7 @@ package decorator
 import (
 	"loja/internal/common/domain/service"
 	"loja/internal/configuration/handler_err"
-	"loja/internal/seller/application/usecase"
+	"loja/internal/seller/application/query"
 )
 
 type TokenVerifierInput[V any] struct {
@@ -12,13 +12,13 @@ type TokenVerifierInput[V any] struct {
 }
 
 type TokenVerifier[V any, R any] struct {
-	usecase usecase.Usecase[V, R]
+	query query.Query[V, R]
 	tokenGenerator service.TokenGenerator
 }
 
-func NewTokenVerifier[V any, R any](usecase usecase.Usecase[V, R]) usecase.Usecase[TokenVerifierInput[V], R] {
+func NewTokenVerifier[V any, R any](query query.Query[V, R]) query.Query[TokenVerifierInput[V], R] {
 	return &TokenVerifier[V, R]{
-		usecase: usecase,
+		query: query,
 		tokenGenerator: *service.NewTokenGenerator("seller"),
 	}
 }
@@ -30,7 +30,7 @@ func (tv *TokenVerifier[V, R]) Run(input TokenVerifierInput[V]) (R, *handler_err
 		return *new(R), msgErr
 	}
 
-	output, msgErr := tv.usecase.Run(input.Data)
+	output, msgErr := tv.query.Run(input.Data)
 	if msgErr.Err != nil {
 		return *new(R), msgErr
 	}

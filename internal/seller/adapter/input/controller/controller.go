@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
 	"loja/internal/configuration/handler_err"
@@ -10,6 +9,7 @@ import (
 	"loja/internal/seller/application/decorator"
 	"loja/internal/seller/application/dto"
 	"loja/internal/seller/application/usecase"
+	"loja/internal/seller/application/query"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,8 +18,8 @@ type GetSellerByIDInput = decorator.TokenVerifierInput[dto.GetSellerByIDInput]
 
 type controller struct {
 	createSeller        usecase.CreateSeller
-	getSellerByID       usecase.Usecase[GetSellerByIDInput, *dto.GetSellerByIDOutput]
-	getSellerByUsername usecase.GetSellerByUsername
+	getSellerByID       query.Query[GetSellerByIDInput, *dto.GetSellerByIDOutput]
+	getSellerByUsername query.GetSellerByUsername
 	registerSeller      usecase.RegisterSeller
 	loginSeller         usecase.LoginSeller
 }
@@ -34,8 +34,8 @@ type ControllerGroup interface {
 
 func NewSellerController(
 	createSeller usecase.CreateSeller,
-	getSellerByID usecase.Usecase[decorator.TokenVerifierInput[dto.GetSellerByIDInput], *dto.GetSellerByIDOutput],
-	getSellerByUsername usecase.GetSellerByUsername,
+	getSellerByID query.Query[decorator.TokenVerifierInput[dto.GetSellerByIDInput], *dto.GetSellerByIDOutput],
+	getSellerByUsername query.GetSellerByUsername,
 	registerSeller usecase.RegisterSeller,
 	loginSeller usecase.LoginSeller,
 ) *controller {
@@ -81,8 +81,6 @@ func (ct *controller) GetSellerByID(c *gin.Context) {
 	sellerInput := dto.GetSellerByIDInput{
 		ID: id,
 	}
-
-	fmt.Println(c.Request.Header.Get("Authorization"))
 
 	seller, infoErr := ct.getSellerByID.Run(GetSellerByIDInput{
 		Token: c.Request.Header.Get("Authorization"),

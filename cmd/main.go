@@ -11,6 +11,7 @@ import (
 	"loja/internal/seller/application/decorator"
 	"loja/internal/seller/application/dto"
 	"loja/internal/seller/application/usecase"
+	"loja/internal/seller/application/query"
 
 	"log"
 	"os"
@@ -37,8 +38,8 @@ func main() {
 	registerSeller := usecase.NewUseCaseRegisterSeller(repository, smtp, cache)
 	createSeller := usecase.NewUseCaseCreateSeller(repository, smtp, cache)
 	loginSeller := usecase.NewUseCaseLoginSeller(repository)
-	getSellerByID := decorator.NewTokenVerifier[dto.GetSellerByIDInput, *dto.GetSellerByIDOutput](usecase.NewUseCaseGetSellerByID(repository))
-	getSellerByUsername := usecase.NewUseCaseGetSellerByUsername(repository)
+	getSellerByID := decorator.NewTokenVerifier[dto.GetSellerByIDInput, *dto.GetSellerByIDOutput](query.NewQueryGetSellerByID(db))
+	getSellerByUsername := query.NewQueryGetSellerByUsername(db)
 	controller := controller.NewSellerController(
 		*createSeller, 
 		getSellerByID,
