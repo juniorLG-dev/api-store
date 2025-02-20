@@ -34,5 +34,3 @@ func (ir *inventoryRepository) CreateProduct(productInventory entities.ProductIn
 
 	return err
 }
-
-
