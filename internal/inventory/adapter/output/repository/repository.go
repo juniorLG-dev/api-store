@@ -3,7 +3,6 @@ package repository
 import (
 	"loja/internal/inventory/adapter/output/model/db"
 	"loja/internal/inventory/application/domain/entities"
-	"loja/internal/inventory/application/domain/vo"
 	
 	"gorm.io/gorm"
 )
