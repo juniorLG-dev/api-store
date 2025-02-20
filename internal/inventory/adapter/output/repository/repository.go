@@ -20,7 +20,6 @@ func NewInventoryRepository(db *gorm.DB) *inventoryRepository {
 
 type PortRepository interface {
 	CreateProduct(entities.ProductInventory) error
-	GetProducts(string) ([]entities.ProductInventory, error)
 }
 
 func (ir *inventoryRepository) CreateProduct(productInventory entities.ProductInventory) error {
@@ -37,23 +36,4 @@ func (ir *inventoryRepository) CreateProduct(productInventory entities.ProductIn
 	return err
 }
 
-func (ir *inventoryRepository) GetProducts(sellerID string) ([]entities.ProductInventory, error) {
-	var products []db.ProductInventoryDB
-	err := ir.db.Where("seller_id = ?", sellerID).Find(&products).Error
-
-	var productsInventory []entities.ProductInventory
-	for _, product := range products {
-		productInventoryInfo := entities.ProductInventory{
-			ID: vo.ID{Value: product.ID},
-			Description: product.Description,
-			Price: vo.Price{Value: product.Price},
-			Quantity: vo.Quantity{Value: product.Quantity},
-			SellerID: product.SellerID,
-		}
-
-		productsInventory = append(productsInventory, productInventoryInfo)
-	}
-
-	return productsInventory, err
-}
 
