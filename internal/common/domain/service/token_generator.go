@@ -20,12 +20,12 @@ type TokenInfoDTO struct {
 }
 
 type TokenGenerator struct {
-	value string
+	Value string
 }
 
 func NewTokenGenerator(typeUser string) *TokenGenerator {
 	return &TokenGenerator{
-		value: typeUser,
+		Value: typeUser,
 	}
 }
 
@@ -36,7 +36,7 @@ func (t *TokenGenerator) GenerateToken(user *entities.User) (string, *handler_er
 		"id": user.GetID(),
 		"name": user.GetName(),
 		"username": user.GetUsername(),
-		"type": t.value,
+		"type": t.Value,
 		"exp": time.Now().Add(time.Hour * 5).Unix(),
 	}
 

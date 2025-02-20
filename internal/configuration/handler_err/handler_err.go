@@ -9,6 +9,7 @@ var (
 	ErrInternal = errors.New("internal error")
 	ErrInvalidInput = errors.New("invalid input error")
 	ErrNotFound = errors.New("not found error")
+	ErrUnauthorized = errors.New("Unauthorized error")
 )
 
 type InfoErr struct {
@@ -46,6 +47,14 @@ func (i *InfoErr) NotFound() *HandlerError {
 	}
 }
 
+func (i *InfoErr) Unauthorized() *HandlerError {
+	return &HandlerError{
+		Message: i.Message,
+		Err: i.Err.Error(),
+		Status: http.StatusUnauthorized,
+	}
+}
+
 var errorsHTTP = map[error]func(string, error)*HandlerError{
 	ErrInternal: func(msg string, err error) *HandlerError {
 		return (&InfoErr{
@@ -64,6 +73,12 @@ var errorsHTTP = map[error]func(string, error)*HandlerError{
 			Message: msg,
 			Err: err,
 		}).NotFound()
+	},
+	ErrUnauthorized: func(msg string, err error) *HandlerError {
+		return (&InfoErr{
+			Message: msg,
+			Err: err,
+		}).Unauthorized()
 	},
 }
 

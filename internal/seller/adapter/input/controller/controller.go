@@ -64,7 +64,6 @@ func (ct *controller) CreateSeller(c *gin.Context) {
 	}
 
 	if infoErr := ct.createSeller.Run(sellerInput); infoErr.Err != nil {
-		fmt.Println(infoErr)
 		msgErr := handler_err.HandlerErr(infoErr)
 		c.JSON(msgErr.Status, msgErr)
 		return
