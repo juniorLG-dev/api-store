@@ -40,6 +40,7 @@ func (cp *CreateProduct) Run(productInput dto.CreateProductInput, token string) 
 		productInput.Quantity,
 		seller.ID,
 	)
+
 	if msgErr.Err != nil {
 		return msgErr
 	}

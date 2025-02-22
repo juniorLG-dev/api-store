@@ -6,20 +6,20 @@ import (
 	"loja/internal/configuration/handler_err"
 	"loja/internal/seller/adapter/input/model/request"
 	"loja/internal/seller/adapter/input/model/response"
-	"loja/internal/seller/application/decorator"
+	"loja/internal/common/decorator"
 	"loja/internal/seller/application/dto"
 	"loja/internal/seller/application/usecase"
-	"loja/internal/seller/application/query"
 
 	"github.com/gin-gonic/gin"
 )
 
 type GetSellerByIDInput = decorator.TokenVerifierInput[dto.GetSellerByIDInput]
+type GetSellerByUsernameInput = decorator.TokenVerifierInput[dto.GetSellerByUsernameInput]
 
 type controller struct {
 	createSeller        usecase.CreateSeller
-	getSellerByID       query.Query[GetSellerByIDInput, *dto.GetSellerByIDOutput]
-	getSellerByUsername query.GetSellerByUsername
+	getSellerByID       decorator.Query[GetSellerByIDInput, *dto.GetSellerByIDOutput]
+	getSellerByUsername decorator.Query[GetSellerByUsernameInput, *dto.GetSellerByUsernameOutput]
 	registerSeller      usecase.RegisterSeller
 	loginSeller         usecase.LoginSeller
 }
@@ -34,8 +34,8 @@ type ControllerGroup interface {
 
 func NewSellerController(
 	createSeller usecase.CreateSeller,
-	getSellerByID query.Query[decorator.TokenVerifierInput[dto.GetSellerByIDInput], *dto.GetSellerByIDOutput],
-	getSellerByUsername query.GetSellerByUsername,
+	getSellerByID decorator.Query[decorator.TokenVerifierInput[dto.GetSellerByIDInput], *dto.GetSellerByIDOutput],
+	getSellerByUsername decorator.Query[decorator.TokenVerifierInput[dto.GetSellerByUsernameInput], *dto.GetSellerByUsernameOutput],
 	registerSeller usecase.RegisterSeller,
 	loginSeller usecase.LoginSeller,
 ) *controller {
@@ -109,10 +109,14 @@ func (ct *controller) GetSellerByUsername(c *gin.Context) {
 		Username: username,
 	}
 
-	seller, infoErr := ct.getSellerByUsername.Run(sellerInput)
+	seller, infoErr := ct.getSellerByUsername.Run(GetSellerByUsernameInput{
+		Token: c.Request.Header.Get("Authorization"),
+		Data: sellerInput,
+	})
 	if infoErr.Err != nil {
 		msgErr := handler_err.HandlerErr(infoErr)
 		c.JSON(msgErr.Status, msgErr)
+		c.Abort()
 		return
 	}
 

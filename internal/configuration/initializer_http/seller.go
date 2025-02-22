@@ -6,7 +6,7 @@ import (
 	"loja/internal/seller/adapter/output/cache"
 	"loja/internal/seller/adapter/output/repository"
 	"loja/internal/seller/adapter/output/smtp"
-	"loja/internal/seller/application/decorator"
+	"loja/internal/common/decorator"
 	"loja/internal/seller/application/dto"
 	"loja/internal/seller/application/usecase"
 	"loja/internal/seller/application/query"
@@ -29,11 +29,11 @@ func InitSeller(db *gorm.DB, rdb *redis.Client, router *gin.RouterGroup) {
 	createSeller := usecase.NewUseCaseCreateSeller(repository, smtp, cache)
 	loginSeller := usecase.NewUseCaseLoginSeller(repository)
 	getSellerByID := decorator.NewTokenVerifier[dto.GetSellerByIDInput, *dto.GetSellerByIDOutput](query.NewQueryGetSellerByID(db))
-	getSellerByUsername := query.NewQueryGetSellerByUsername(db)
+	getSellerByUsername := decorator.NewTokenVerifier[dto.GetSellerByUsernameInput, *dto.GetSellerByUsernameOutput](query.NewQueryGetSellerByUsername(db))
 	controller := controller.NewSellerController(
 		*createSeller, 
 		getSellerByID,
-		*getSellerByUsername,
+		getSellerByUsername,
 		*registerSeller,
 		*loginSeller,
 	)

@@ -6,31 +6,33 @@ import (
 	"loja/internal/inventory/adapter/input/model/request"
 	"loja/internal/inventory/adapter/input/model/response"
 	"loja/internal/configuration/handler_err"
-	"loja/internal/inventory/application/query"
+	"loja/internal/common/decorator"
 
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+type GetProductByIDInput = decorator.TokenVerifierInput[dto.GetProductByIDInput]
+
 type controller struct {
 	createProduct usecase.CreateProduct
-	getProducts query.GetProducts
+	getProductByID decorator.Query[GetProductByIDInput, dto.GetProductByIDOutput]
 }
 
 func NewInventoryController(
 	createProduct usecase.CreateProduct,
-	getProducts query.GetProducts,
+	getProductByID decorator.Query[decorator.TokenVerifierInput[dto.GetProductByIDInput], dto.GetProductByIDOutput],
 ) *controller {
 	return &controller{
 		createProduct: createProduct,
-		getProducts: getProducts,
+		getProductByID: getProductByID,
 	}
 }
 
 type ControllerGroupInventory interface {
 	CreateProduct(*gin.Context) 
-	GetProducts(*gin.Context)
+	GetProductByID(*gin.Context)
 }
 
 func (ct *controller) CreateProduct(c *gin.Context) {
@@ -58,31 +60,30 @@ func (ct *controller) CreateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "product created"})
 }
 
-func (ct *controller) GetProducts(c *gin.Context) {
-	sellerID := c.Param("id")
+func (ct *controller) GetProductByID(c *gin.Context) {
+	productID := c.Param("id")
 
-	sellerIDInput := dto.GetProductsInput{
-		SellerID: sellerID,
+	productIDInput := dto.GetProductByIDInput{
+		ID: productID,
 	}
 
-	products, infoErr := ct.getProducts.Run(sellerIDInput)
+	product, infoErr := ct.getProductByID.Run(GetProductByIDInput{
+		Token: c.Request.Header.Get("Authorization"),
+		Data: productIDInput,
+	})
 	if infoErr.Err != nil {
 		msgErr := handler_err.HandlerErr(infoErr)
 		c.JSON(msgErr.Status, msgErr)
 		return
 	}
 
-	var productsResponse []response.ProductInventoryResponse
-	for _, product := range products {
-		productInfo := response.ProductInventoryResponse{
-			ID: product.ID,
-			Description: product.Description,
-			Price: product.Price,
-			Quantity: product.Quantity,
-		}
-
-		productsResponse = append(productsResponse, productInfo)
+	productOutput := response.ProductInventoryResponse{
+		ID: product.ID,
+		Description: product.Description,
+		Price: product.Price,
+		Quantity: product.Quantity,
+		SellerID: product.SellerID,
 	}
 
-	c.JSON(http.StatusOK, productsResponse)
+	c.JSON(http.StatusOK, productOutput)
 }

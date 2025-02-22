@@ -6,6 +6,8 @@ import (
 	"loja/internal/inventory/adapter/input/controller"
 	"loja/internal/inventory/adapter/input/routes"
 	"loja/internal/inventory/application/query"
+	"loja/internal/inventory/application/dto"
+	"loja/internal/common/decorator"
 
 	"gorm.io/gorm"
 	"github.com/gin-gonic/gin"
@@ -14,10 +16,10 @@ import (
 func InitInventory(db *gorm.DB, router *gin.RouterGroup) {
 	inventoryRepository := repository.NewInventoryRepository(db)
 	createProduct := usecase.NewUseCaseCreateProduct(inventoryRepository)
-	getProducts := query.NewQueryGetProducts(db)
+	getProductByID := decorator.NewTokenVerifier[dto.GetProductByIDInput, dto.GetProductByIDOutput](query.NewQueryGetProductByID(db))
 	inventoryController := controller.NewInventoryController(
 		*createProduct,
-		*getProducts,
+		getProductByID,
 	)
 
 	routes.InitRoutes(router, inventoryController)

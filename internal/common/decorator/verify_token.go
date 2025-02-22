@@ -3,20 +3,23 @@ package decorator
 import (
 	"loja/internal/common/domain/service"
 	"loja/internal/configuration/handler_err"
-	"loja/internal/seller/application/query"
 )
+
+type Query[V any, R any] interface {
+	Run(V) (R, *handler_err.InfoErr)
+}
 
 type TokenVerifierInput[V any] struct {
 	Token string
-	Data V
+	Data  V
 }
 
 type TokenVerifier[V any, R any] struct {
-	query query.Query[V, R]
+	query Query[V, R]
 	tokenGenerator service.TokenGenerator
 }
 
-func NewTokenVerifier[V any, R any](query query.Query[V, R]) query.Query[TokenVerifierInput[V], R] {
+func NewTokenVerifier[V any, R any](query Query[V, R]) Query[TokenVerifierInput[V], R] {
 	return &TokenVerifier[V, R]{
 		query: query,
 		tokenGenerator: *service.NewTokenGenerator("seller"),

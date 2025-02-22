@@ -8,5 +8,5 @@ import (
 
 func InitRoutes(rg *gin.RouterGroup, ct controller.ControllerGroupInventory) {
 	rg.POST("/product", ct.CreateProduct)
-	rg.GET("/seller/:id/products", ct.GetProducts)
+	rg.GET("/product/:id", ct.GetProductByID)
 }
