@@ -29,7 +29,7 @@ type PortCache interface {
 func (c *cache) SetCache(infoSeller seller_cache.InfoSeller) error {
 	infoSellerJSON, err := json.Marshal(infoSeller)
 
-	err = c.rdb.Set(ctx, infoSeller.Email, infoSellerJSON, 3*time.Minute).Err()
+	err = c.rdb.Set(ctx, infoSeller.Email, infoSellerJSON, 5*time.Minute).Err()
 
 	return err
 }

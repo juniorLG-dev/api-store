@@ -3,13 +3,11 @@ package usecase
 import (
 	"loja/internal/seller/adapter/output/repository"
 	"loja/internal/seller/adapter/output/cache"
-	"loja/internal/seller/adapter/output/smtp"
+	"loja/internal/common/smtp"
 	"loja/internal/seller/application/domain"
 	"loja/internal/configuration/handler_err"
 	"loja/internal/seller/application/dto"
 	"loja/internal/common/domain/service"
-
-	"fmt"
 )
 
 type CreateSeller struct {
@@ -37,7 +35,6 @@ func (cs *CreateSeller) Run(sellerInput dto.CreateSellerInput) *handler_err.Info
 
 	verificationCode, msgErr := service.NewCode(sellerCache.Code)
 	if msgErr.Err != nil {
-		fmt.Println("error: ", msgErr)
 		return msgErr
 	}
 

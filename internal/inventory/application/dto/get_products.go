@@ -1,10 +1,10 @@
 package dto
 
-type GetProductByIDInput struct {
-	ID string
+type GetProductsInput struct {
+	SellerID string
 }
 
-type GetProductByIDOutput struct {
+type GetProductsOutput struct {
 	ID 					string
 	Description string
 	Price 			float64

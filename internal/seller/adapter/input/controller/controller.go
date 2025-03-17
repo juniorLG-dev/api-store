@@ -22,6 +22,7 @@ type controller struct {
 	getSellerByUsername decorator.Query[GetSellerByUsernameInput, *dto.GetSellerByUsernameOutput]
 	registerSeller      usecase.RegisterSeller
 	loginSeller         usecase.LoginSeller
+	deleteSeller        usecase.DeleteSeller
 }
 
 type ControllerGroup interface {
@@ -30,6 +31,7 @@ type ControllerGroup interface {
 	GetSellerByUsername(c *gin.Context)
 	RegisterSeller(c *gin.Context)
 	LoginSeller(c *gin.Context)
+	DeleteSeller(c *gin.Context)
 }
 
 func NewSellerController(
@@ -38,6 +40,7 @@ func NewSellerController(
 	getSellerByUsername decorator.Query[decorator.TokenVerifierInput[dto.GetSellerByUsernameInput], *dto.GetSellerByUsernameOutput],
 	registerSeller usecase.RegisterSeller,
 	loginSeller usecase.LoginSeller,
+	deleteSeller usecase.DeleteSeller,
 ) *controller {
 	return &controller{
 		createSeller:        createSeller,
@@ -45,6 +48,7 @@ func NewSellerController(
 		getSellerByUsername: getSellerByUsername,
 		registerSeller:      registerSeller,
 		loginSeller:         loginSeller,
+		deleteSeller:        deleteSeller,
 	}
 }
 
@@ -183,5 +187,31 @@ func (ct *controller) LoginSeller(c *gin.Context) {
 	c.Header("Authorization", token)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "login successful",
+	})
+}
+
+func (ct *controller) DeleteSeller(c *gin.Context) {
+	var sellerRequest request.SellerRequest
+	if err := c.ShouldBindJSON(&sellerRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid fields",
+		})
+		return
+	}
+
+	sellerInput := dto.DeleteSellerInput{
+		Password: sellerRequest.Password,
+	}
+
+	token := c.Request.Header.Get("Authorization")
+
+	if infoErr := ct.deleteSeller.Run(sellerInput, token); infoErr.Err != nil {
+		msgErr := handler_err.HandlerErr(infoErr)
+		c.JSON(msgErr.Status, msgErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "seller deleted",
 	})
 }

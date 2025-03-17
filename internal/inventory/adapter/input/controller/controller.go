@@ -3,36 +3,38 @@ package controller
 import (
 	"loja/internal/inventory/application/usecase"
 	"loja/internal/inventory/application/dto"
+	"loja/internal/inventory/application/query"
 	"loja/internal/inventory/adapter/input/model/request"
 	"loja/internal/inventory/adapter/input/model/response"
 	"loja/internal/configuration/handler_err"
-	"loja/internal/common/decorator"
 
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type GetProductByIDInput = decorator.TokenVerifierInput[dto.GetProductByIDInput]
-
 type controller struct {
 	createProduct usecase.CreateProduct
-	getProductByID decorator.Query[GetProductByIDInput, dto.GetProductByIDOutput]
+	getProducts query.GetProducts
+	deleteProduct usecase.DeleteProduct
 }
 
 func NewInventoryController(
 	createProduct usecase.CreateProduct,
-	getProductByID decorator.Query[decorator.TokenVerifierInput[dto.GetProductByIDInput], dto.GetProductByIDOutput],
+	getProducts query.GetProducts,
+	deleteProduct usecase.DeleteProduct,
 ) *controller {
 	return &controller{
 		createProduct: createProduct,
-		getProductByID: getProductByID,
+		getProducts: getProducts,
+		deleteProduct: deleteProduct,
 	}
 }
 
 type ControllerGroupInventory interface {
 	CreateProduct(*gin.Context) 
-	GetProductByID(*gin.Context)
+	GetProducts(*gin.Context)
+	DeleteProduct(*gin.Context)
 }
 
 func (ct *controller) CreateProduct(c *gin.Context) {
@@ -60,30 +62,55 @@ func (ct *controller) CreateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "product created"})
 }
 
-func (ct *controller) GetProductByID(c *gin.Context) {
-	productID := c.Param("id")
+func (ct *controller) GetProducts(c *gin.Context) {
+	sellerID := c.Param("id")
 
-	productIDInput := dto.GetProductByIDInput{
-		ID: productID,
+	productIDInput := dto.GetProductsInput{
+		SellerID: sellerID,
 	}
 
-	product, infoErr := ct.getProductByID.Run(GetProductByIDInput{
-		Token: c.Request.Header.Get("Authorization"),
-		Data: productIDInput,
-	})
+	products, infoErr := ct.getProducts.Run(productIDInput)
 	if infoErr.Err != nil {
 		msgErr := handler_err.HandlerErr(infoErr)
 		c.JSON(msgErr.Status, msgErr)
 		return
 	}
 
-	productOutput := response.ProductInventoryResponse{
-		ID: product.ID,
-		Description: product.Description,
-		Price: product.Price,
-		Quantity: product.Quantity,
-		SellerID: product.SellerID,
+	var productsOutput []response.ProductInventoryResponse
+	for _, product := range products {
+		productOutput := response.ProductInventoryResponse{
+			ID: product.ID,
+			Description: product.Description,
+			Price: product.Price,
+			Quantity: product.Quantity,
+			SellerID: product.SellerID,
+		}
+		productsOutput = append(productsOutput, productOutput)
 	}
 
-	c.JSON(http.StatusOK, productOutput)
+	c.JSON(http.StatusOK, productsOutput)
+}
+
+func (ct *controller) DeleteProduct(c *gin.Context) {
+	var productRequest request.ProductInventoryRequest
+	if err := c.ShouldBindJSON(&productRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid fields",
+		})
+		return
+	}
+
+	productInput := dto.DeleteProductInput{
+		ID: productRequest.ProductID,
+	}
+
+	if infoErr := ct.deleteProduct.Run(productInput, c.Request.Header.Get("Authorization")); infoErr.Err != nil {
+		msgErr := handler_err.HandlerErr(infoErr)
+		c.JSON(msgErr.Status, msgErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "product deleted",
+	})
 }

@@ -8,8 +8,9 @@ import (
 
 func InitRoutes(rg *gin.RouterGroup, ct controller.ControllerGroup) {
 	rg.POST("/register/seller", ct.RegisterSeller)
-	rg.POST("/verify", ct.CreateSeller)
+	rg.POST("/verify/seller", ct.CreateSeller)
 	rg.POST("/login/seller", ct.LoginSeller)
 	rg.GET("/seller/:id", ct.GetSellerByID)
 	rg.GET("/seller/username/:username", ct.GetSellerByUsername)
+	rg.DELETE("/delete/seller", ct.DeleteSeller)
 }

@@ -22,6 +22,8 @@ func main() {
 
 	initializer_http.InitSeller(db, &rdb, &router.RouterGroup)
 	initializer_http.InitInventory(db, &router.RouterGroup)
+	initializer_http.InitCustomer(db, &rdb, &router.RouterGroup)
+	initializer_http.InitCart(db, &router.RouterGroup)
 
 	router.Run(":8080")
 }

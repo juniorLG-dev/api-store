@@ -5,7 +5,7 @@ import (
 	"loja/internal/seller/adapter/output/cache"
 	"loja/internal/seller/adapter/output/model/seller_cache"
 	"loja/internal/seller/adapter/output/repository"
-	"loja/internal/seller/adapter/output/smtp"
+	"loja/internal/common/smtp"
 	"loja/internal/configuration/handler_err"
 	"loja/internal/seller/application/dto"
 
@@ -67,6 +67,13 @@ func (rs *RegisterSeller) Run(sellerInput dto.RegisterSellerInput) *handler_err.
 		}
 	}
 
+	if err := rs.smtp.SendVerificationEmail(sellerInput.Email, code); err != nil {
+		return &handler_err.InfoErr{
+			Message: "unable to send verification code",
+			Err: handler_err.ErrInternal,
+		}
+	}
+	
 	sellerCache := seller_cache.NewInfoSeller(
 		sellerInput.Name,
 		sellerInput.Username,
@@ -78,13 +85,6 @@ func (rs *RegisterSeller) Run(sellerInput dto.RegisterSellerInput) *handler_err.
 	if err := rs.cache.SetCache(*sellerCache); err != nil {
 		return &handler_err.InfoErr{
 			Message: "unable to register seller",
-			Err: handler_err.ErrInternal,
-		}
-	}
-
-	if err := rs.smtp.SendVerificationEmail(sellerInput.Email, code); err != nil {
-		return &handler_err.InfoErr{
-			Message: "unable to send verification code",
 			Err: handler_err.ErrInternal,
 		}
 	}

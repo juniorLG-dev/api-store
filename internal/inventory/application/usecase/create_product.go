@@ -6,6 +6,8 @@ import (
 	"loja/internal/inventory/application/dto"
 	"loja/internal/common/domain/service"
 	"loja/internal/configuration/handler_err"
+
+	"fmt"
 )
 
 type CreateProduct struct {
@@ -44,6 +46,8 @@ func (cp *CreateProduct) Run(productInput dto.CreateProductInput, token string) 
 	if msgErr.Err != nil {
 		return msgErr
 	}
+
+	fmt.Println(productInventory)
 
 	if err := cp.repository.CreateProduct(*productInventory); err != nil {
 		return &handler_err.InfoErr{

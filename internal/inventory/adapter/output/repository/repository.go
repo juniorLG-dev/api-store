@@ -3,6 +3,7 @@ package repository
 import (
 	"loja/internal/inventory/adapter/output/model/db"
 	"loja/internal/inventory/application/domain/entities"
+	"loja/internal/inventory/application/domain/vo"
 	
 	"gorm.io/gorm"
 )
@@ -19,6 +20,8 @@ func NewInventoryRepository(db *gorm.DB) *inventoryRepository {
 
 type PortRepository interface {
 	CreateProduct(entities.ProductInventory) error
+	DeleteProduct(string) error
+	GetProductByID(string)(entities.ProductInventory, error)
 }
 
 func (ir *inventoryRepository) CreateProduct(productInventory entities.ProductInventory) error {
@@ -33,4 +36,22 @@ func (ir *inventoryRepository) CreateProduct(productInventory entities.ProductIn
 	err := ir.db.Create(&productInventoryDB).Error
 
 	return err
+}
+
+func (ir *inventoryRepository) DeleteProduct(id string) error {
+	err := ir.db.Delete(&db.ProductInventoryDB{}, "id = ?", id).Error
+	return err
+}
+
+func (ir *inventoryRepository) GetProductByID(id string) (entities.ProductInventory, error) {
+	var product db.ProductInventoryDB
+	err := ir.db.First(&product, "id = ?", id).Error
+
+	return entities.ProductInventory{
+		ID: vo.ID{Value: product.ID},
+		Description: product.Description,
+		Price: vo.Price{Value: product.Price},
+		Quantity: vo.Quantity{Value: product.Quantity},
+		SellerID: product.SellerID,
+	}, err
 }
