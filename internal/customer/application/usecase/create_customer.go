@@ -7,8 +7,6 @@ import (
 	"loja/internal/customer/application/domain"
 	"loja/internal/common/domain/service"
 	"loja/internal/configuration/handler_err"
-
-	"fmt"
 )
 
 type CreateCustomer struct {
@@ -39,8 +37,6 @@ func (cc *CreateCustomer) Run(customerInput dto.CreateCustomerInput) *handler_er
 	if msgErr.Err != nil {
 		return msgErr
 	}
-
-	fmt.Println(infoCustomerCache.Code, customerInput.Code)
 
 	if !code.CheckCode(customerInput.Code) {
 		return &handler_err.InfoErr{
