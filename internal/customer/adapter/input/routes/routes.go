@@ -10,7 +10,7 @@ func InitRoutes(rg *gin.RouterGroup, ct controller.ControllerGroup) {
 	rg.POST("/register/customer", ct.RegisterCustomer)
 	rg.POST("/verify/customer", ct.CreateCustomer)
 	rg.POST("/login/customer", ct.LoginCustomer)
-	rg.GET("/customr/:id", ct.GetCustomerByID)
+	rg.GET("/customer/:id", ct.GetCustomerByID)
 	rg.GET("/customer/username/:username", ct.GetCustomerByUsername)
 	rg.DELETE("/delete/customer", ct.DeleteCustomer)
 }
